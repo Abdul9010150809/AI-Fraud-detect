@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 
 from backend.models import schemas
 from backend.integrations.fusion_wrapper import run_fusion
-from ai_modules.text_classifier import TextClassifier, MessageType
+from ai_modules.text_classifier import TextClassifier, RiskLevel
 
 logger = logging.getLogger(__name__)
 
@@ -55,32 +55,28 @@ async def ingest_text(payload: schemas.TextIngestRequest, background: Background
     try:
         content = sanitize_text(payload.content)
         # Use NLP classifier for text analysis
-        classifier = TextClassifier(log_analyses=False)
+        # V2: No init args
+        classifier = TextClassifier()
         result = classifier.classify(content)
-        label = result.label
-        risk_score = 0.0
+        
+        risk_score = result.risk_score
         alert = None
-        # Only set risk/alert for fake or AI-generated
-        if label == MessageType.FAKE_SCAM.value:
-            risk_score = 95.0
-            alert = "FRAUD DETECTED! Pattern matches known scam"
-            background.add_task(trigger_alert, alert, {"user_id": payload.user_id, "label": label})
-        elif label == MessageType.AI_GENERATED.value:
-            risk_score = 60.0
-            alert = "AI-generated message detected"
-        # Normal: risk_score remains 0, no alert
+        
+        # Determine alert based on is_fraud flag
+        if result.is_fraud:
+            alert = f"FRAUD DETECTED! Level: {result.risk_level}"
+            if result.risk_score > 80:
+                 alert += " (High Confidence)"
+            background.add_task(trigger_alert, alert, {"user_id": payload.user_id, "risk": result.risk_level})
+
         processing_time = time.time() - start
+        
         return schemas.IngestResponse(
             risk_score=risk_score,
             confidence=result.confidence,
             processing_time=processing_time,
             alert=alert,
-            details={
-                "label": label,
-                "risk_level": result.risk_level,
-                "explanation": result.explanation,
-                "indicators": result.indicators
-            }
+            details=result.to_json()
         )
     except HTTPException:
         raise

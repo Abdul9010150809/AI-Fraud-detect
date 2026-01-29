@@ -6,12 +6,10 @@ Provides /analyze endpoint for AI text classification
 import asyncio
 import logging
 import time
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List, Union
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
-
-from backend.models import schemas
 
 logger = logging.getLogger(__name__)
 
@@ -71,22 +69,33 @@ class TextAnalyzeRequest(BaseModel):
         return v.strip()
 
 
+class LinkIntelligence(BaseModel):
+    domain_age_days: int
+    tld_risk: bool
+    brand_spoofing: bool
+    google_presence: str
+    reputation_summary: str
+
 class TextAnalyzeResponse(BaseModel):
-    """Response model for text analysis"""
-    label: str = Field(..., description="Classification label")
-    risk_level: str = Field(..., description="Risk level: low, medium, high")
-    confidence: float = Field(..., description="Confidence score 0-1")
-    explanation: str = Field(..., description="Human-readable explanation")
-    indicators: list = Field(..., description="Detected indicators")
-    processing_time: float = Field(..., description="Processing time in seconds")
+    """Response model for text analysis - V2"""
+    is_fraud: bool
+    risk_score: float
+    risk_level: str
+    fraud_type: List[str]
+    why_fraud: List[str]
+    detected_signals: Dict[str, bool]
+    link_intelligence: Optional[LinkIntelligence]
+    recommended_action: List[str]
+    confidence: float
+    processing_time: float
     timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
 
 
 class HealthResponse(BaseModel):
     """Health check response"""
     status: str = "healthy"
-    model: str = "text-classifier-v1"
-    version: str = "1.0.0"
+    model: str = "text-classifier-v2"
+    version: str = "2.0.0"
 
 
 def sanitize_text(text: str) -> str:
@@ -110,8 +119,8 @@ def log_analysis(request: Dict[str, Any], response: Dict[str, Any]):
             "metadata": request.get("metadata", {})
         },
         "response": {
-            "label": response.get("label"),
-            "confidence": response.get("confidence"),
+            "is_fraud": response.get("is_fraud"),
+            "risk_score": response.get("risk_score"),
             "risk_level": response.get("risk_level"),
             "processing_time": response.get("processing_time")
         }
@@ -127,16 +136,8 @@ async def analyze_text(
     _rl: None = Depends(rate_limiter)
 ) -> TextAnalyzeResponse:
     """
-    Analyze a text message for classification.
-    
-    Classifies into:
-    - ai_generated: Likely AI-generated content
-    - normal: Normal human conversation
-    - fake_scam: Potential fraud/scam message
-    
-    Returns confidence score and explanation.
+    Analyze a text message for fraud classification (V2).
     """
-    start_time = time.time()
     
     try:
         # Sanitize input
@@ -146,20 +147,22 @@ async def analyze_text(
         from ai_modules.text_classifier import TextClassifier
         
         # Initialize and classify
-        classifier = TextClassifier(log_analyses=False)
+        # V2: No arguments needed for init
+        classifier = TextClassifier()
         result = classifier.classify(text)
         
-        # Build response
-        response_data = result.to_dict()
+        # Build response using to_json() (which returns dict)
+        response_data = result.to_json()
         response_data["timestamp"] = datetime.utcnow().isoformat()
+        response_data["processing_time"] = result.processing_time
         
         # Log analysis for dataset expansion
         log_analysis(payload.dict(), response_data)
         
         logger.info(
-            f"Analyzed text: label={response_data['label']}, "
-            f"confidence={response_data['confidence']:.2%}, "
-            f"time={response_data['processing_time']:.3f}s"
+            f"Analyzed text: is_fraud={response_data['is_fraud']}, "
+            f"score={response_data['risk_score']}, "
+            f"time={float(response_data.get('processing_time', 0)):.3f}s"
         )
         
         return TextAnalyzeResponse(**response_data)
@@ -202,4 +205,3 @@ async def clear_analysis_log():
 
 
 import re  # Import for sanitization function
-

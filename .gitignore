@@ -1,4 +1,4 @@
-# Python
+# --- Python ---
 __pycache__/
 *.py[cod]
 *.pyo
@@ -6,50 +6,69 @@ __pycache__/
 env/
 venv/
 .venv/
-# VS Code
-.vscode/
-# Node
-node_modules/
-frontend/.next/
-frontend/node_modules/
-frontend/.env.local
-frontend/.env
-# Docker
-*.tar
-docker-compose.override.yml
-# Logs
-*.log
-logs/
-# OS
-.DS_Store
-Thumbs.db
-# Build artifacts
-dist/
-build/
-*.egg-info/
-# Local IDE files
-*.sublime-workspace
-*.sublime-project
-# Secrets
+env.bak/
+venv.bak/
+.env/
 .env
 /.env
-# Database
-*.sqlite3
-# Coverage
-.pytest_cache/
-coverage/
-# Python virtual env markers
+*.egg-info/
 pip-wheel-metadata/
+.pytest_cache/
+*.sqlite3
 
-# Jupyter
-*.ipynb_checkpoints
-
-# Test outputs
+# --- Node/JS/TS ---
+node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+pnpm-debug.log*
+frontend/coverage/
+coverage/
 *.coverage
 coverage.xml
+*.tsbuildinfo
 
-# System files
+# --- Testing ---
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+frontend/jest-results.xml
+vitest.config.ts.timestamp-*
+
+# --- Editors/IDEs ---
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
 *.swp
+*.swo
+*.bak
+*.tmp
+
+# --- OS/System ---
+.DS_Store
+Thumbs.db
+
+# --- Docker ---
+*.tar
+docker-compose.override.yml
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Jupyter ---
+*.ipynb_checkpoints
+
 *.swo
 
 # Backend DB dumps
@@ -69,3 +88,8 @@ frontend/components/__tests__/__snapshots__/
 
 # Ignore local docker volumes
 infrastructure/data/
+
+# --- AI/LLM Resources ---
+free-llm-api-resources/src/*.mp3
+free-llm-api-resources/src/output/
+

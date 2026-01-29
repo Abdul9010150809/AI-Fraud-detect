@@ -1,0 +1,62 @@
+import { create } from 'zustand';
+import { DEMO_DATASET } from '@/data/demo_dataset';
+
+type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+interface AnalysisResult {
+    riskScore: number;
+    riskLevel: RiskLevel;
+    fraudType: string;
+    confidence: number;
+    explanation: string;
+    signals: string[];
+}
+
+interface FraudStore {
+    inputText: string;
+    setInputText: (text: string) => void;
+
+    isAnalyzing: boolean;
+    setIsAnalyzing: (isAnalyzing: boolean) => void;
+
+    result: AnalysisResult | null;
+    setResult: (result: AnalysisResult | null) => void;
+
+    demoMode: boolean;
+    setDemoMode: (enabled: boolean) => void;
+
+    selectedScenario: string | null;
+    setSelectedScenario: (id: string | null) => void;
+
+    language: 'en' | 'hi';
+    setLanguage: (lang: 'en' | 'hi') => void;
+
+    fillDemoData: (id: string) => void;
+}
+
+export const useFraudStore = create<FraudStore>((set) => ({
+    inputText: '',
+    setInputText: (text) => set({ inputText: text }),
+
+    isAnalyzing: false,
+    setIsAnalyzing: (isAnalyzing) => set({ isAnalyzing }),
+
+    result: null,
+    setResult: (result) => set({ result }),
+
+    demoMode: false,
+    setDemoMode: (enabled) => set({ demoMode: enabled }),
+
+    selectedScenario: null,
+    setSelectedScenario: (id) => set({ selectedScenario: id }),
+
+    language: 'en',
+    setLanguage: (lang) => set({ language: lang }),
+
+    fillDemoData: (id) => {
+        const item = DEMO_DATASET.find(d => d.id === id);
+        if (item) {
+            set({ inputText: item.text, selectedScenario: id });
+        }
+    }
+}));

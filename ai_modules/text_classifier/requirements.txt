@@ -4,6 +4,8 @@
 # Core dependencies (minimal)
 # No heavy ML models - rule-based + simple NLP
 
+pyspellchecker==0.8.1
+
 # Already in main requirements:
 # - nltk (for sentiment analysis if needed)
 

@@ -1,24 +1,21 @@
 """
 Text Classifier Module
 Lightweight AI text classification for detecting:
-- AI-generated text
-- Normal human conversation
-- Fake/Scam messages
+- Fraud/Scam messages
+- Safe/Normal conversation
+- Suspicious content
 """
 
 from .text_classifier import (
     TextClassifier,
-    ClassificationResult,
-    MessageType,
+    FraudDetectionResult,
     RiskLevel,
-    quick_classify
+    LinkIntelligence,
 )
 
 __all__ = [
     'TextClassifier',
-    'ClassificationResult', 
-    'MessageType',
+    'FraudDetectionResult', 
     'RiskLevel',
-    'quick_classify'
+    'LinkIntelligence',
 ]
-
