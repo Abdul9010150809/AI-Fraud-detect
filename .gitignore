@@ -93,3 +93,4 @@ infrastructure/data/
 free-llm-api-resources/src/*.mp3
 free-llm-api-resources/src/output/
 
+dataset/combined_data.csv
