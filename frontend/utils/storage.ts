@@ -10,7 +10,19 @@ export type AnalysisRecord = {
   raw?: any
 }
 
+// Fallback in-memory storage for environments without localStorage (e.g., Node tests)
+let inMemoryStore: AnalysisRecord[] = []
+
+function hasLocalStorage() {
+  try {
+    return typeof localStorage !== 'undefined'
+  } catch (e) {
+    return false
+  }
+}
+
 export function getRecentAnalyses(): AnalysisRecord[] {
+  if (!hasLocalStorage()) return inMemoryStore
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return []
@@ -22,6 +34,10 @@ export function getRecentAnalyses(): AnalysisRecord[] {
 }
 
 export function saveRecentAnalyses(items: AnalysisRecord[]) {
+  if (!hasLocalStorage()) {
+    inMemoryStore = items.slice(0, MAX_ITEMS)
+    return
+  }
   try {
     localStorage.setItem(KEY, JSON.stringify(items.slice(0, MAX_ITEMS)))
   } catch (e) {
@@ -50,6 +66,10 @@ export function addAnalysis(r: any, mode?: string) {
 }
 
 export function clearAnalyses() {
+  if (!hasLocalStorage()) {
+    inMemoryStore = []
+    return
+  }
   try {
     localStorage.removeItem(KEY)
   } catch (e) {

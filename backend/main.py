@@ -17,9 +17,14 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting up the application...")
     try:
-        await mongodb_conn.connect()
-        await redis_conn.connect()
-        logger.info("Database connections established successfully")
+        # Allow skipping DB connects in test mode
+        import os
+        if os.environ.get('SKIP_DB') != '1':
+            await mongodb_conn.connect()
+            await redis_conn.connect()
+            logger.info("Database connections established successfully")
+        else:
+            logger.info("SKIP_DB set — skipping DB connects for testing")
     except Exception as e:
         logger.error(f"Failed to establish database connections: {e}")
         raise

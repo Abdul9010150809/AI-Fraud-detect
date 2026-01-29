@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { ingestText, ingestUrl, ingestImage, ingestAudio, ingestTransaction } from '../utils/api'
 import LoadingSpinner from './LoadingSpinner'
 

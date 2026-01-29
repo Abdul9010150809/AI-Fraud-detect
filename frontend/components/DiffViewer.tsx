@@ -43,6 +43,8 @@ export default function DiffViewer({
     }>{s.text}</span>
   ))
 
+  const reasons = raw?.reasons || raw?.explanation || raw?.details?.reasons || 'No reasons provided'
+
   return (
     <div className="mt-3 p-3 bg-gray-50 border rounded">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -60,6 +62,11 @@ export default function DiffViewer({
           <div className="text-xs text-gray-500 mb-1">Rule/text-based Fake</div>
           <div className="p-2 bg-white rounded text-sm whitespace-pre-wrap">{ruleFake ? renderSegs(ruleDiff) : <span className="text-gray-400">(none)</span>}</div>
         </div>
+      </div>
+
+      <div className="mt-3">
+        <div className="text-xs text-gray-500 mb-1">Why it's Fake</div>
+        <div className="p-2 bg-white rounded text-sm text-gray-800 whitespace-pre-wrap">{reasons}</div>
       </div>
 
       <div className="mt-3 text-sm">
