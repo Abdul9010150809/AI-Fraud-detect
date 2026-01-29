@@ -97,7 +97,12 @@ export async function analyzeContent(text: string, imageBase64?: string, useMock
       
       TASK Checklist:
       1. **IMAGE PRE-CHECK**: If generic photo (no text/logos) -> MARK SAFE. 
-      2. **EMAIL ANALYSIS**: Check Sender Mismatch, Subject Urgency, Attachments.
+      2. **EMAIL ANALYSIS**: If the input looks like an email (Headers, Subject, Body):
+         - **SENDER INTELLIGENCE**: Check the 'SENDER' address against the 'BODY' content.
+           *   **Mismatch**: If body claims "PayPal/Apple/Bank" bu sender is Generic (gmail, yahoo, hotmail) -> **CRITICAL RISK**.
+           *   **Typosquatting**: Check sender domain for subtle errors (e.g., '@paypa1.com', '@amaz0n-support.net').
+         - Check Subject Line for Urgency/Threats.
+         - Check for suspicious attachment mentions (.exe, .zip).
       3. **BANK VERIFICATION**: Check for Typosquatting (e.g. 'hdfkbank').
       4. **SIMILARITY**: Does this look like the [DATASET_*] patterns above?
 
