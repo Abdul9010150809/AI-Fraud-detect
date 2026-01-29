@@ -2,10 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from backend.routers.ingest import router as ingest_router
+from backend.routers.analyze import router as analyze_router
 from contextlib import asynccontextmanager
 import logging
 from backend.database.mongodb import mongodb_conn
-from database.redis import redis_conn
+from backend.database.redis import redis_conn
 # Note: simple in-app rate limiting implemented in router for demo
 
 # Configure logging
@@ -55,6 +56,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(ingest_router)
+app.include_router(analyze_router)
 
 @app.get("/")
 async def root():

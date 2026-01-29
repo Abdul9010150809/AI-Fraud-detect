@@ -18,6 +18,7 @@ export default function ModalAI({ open, onClose, onResult }: { open: boolean, on
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<string | null>(null)
+  const [lastResult, setLastResult] = useState<any | null>(null)
 
   const modalRef = useRef<HTMLDivElement | null>(null)
   const previouslyFocused = useRef<HTMLElement | null>(null)
@@ -87,20 +88,29 @@ export default function ModalAI({ open, onClose, onResult }: { open: boolean, on
     }
 
     setLoading(true)
-    try {
+      try {
       let res
+      let requestPayload: any = { mode }
       if (mode === 'text') {
+        requestPayload.content = text
         res = await ingestText({ source: 'ui', content: text })
       } else if (mode === 'url') {
+        requestPayload.url = url
         res = await ingestUrl({ url })
       } else if (mode === 'transaction') {
+        requestPayload.transaction = { user_id: 'ui', transaction_id: 'tx-ui', amount: 1.0 }
         res = await ingestTransaction({ user_id: 'ui', transaction_id: 'tx-ui', amount: 1.0 })
       } else if (mode === 'image' && file) {
+        requestPayload.file = file.name
         res = await ingestImage(file)
       } else if (mode === 'audio' && file) {
+        requestPayload.file = file.name
         res = await ingestAudio(file)
       }
-      onResult(res)
+      // attach original request info so UI can show the message that was analyzed
+      const resWithRequest = Object.assign({}, res || {}, { __request: requestPayload })
+      setLastResult(resWithRequest)
+      onResult(resWithRequest)
       onClose()
     } catch (e: any) {
       onResult({ error: e.message || String(e) })
@@ -112,15 +122,15 @@ export default function ModalAI({ open, onClose, onResult }: { open: boolean, on
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50" aria-hidden={false}>
       <div className="fixed inset-0 bg-black opacity-40 transition-opacity" onClick={onClose} />
-      <div ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="ai-modal-title" className="bg-white rounded-lg shadow-xl max-w-xl w-full p-6 z-10 transform transition-transform duration-200 ease-out scale-100">
+      <div ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="ai-modal-title" className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-xl w-full p-6 z-10 transform transition-transform duration-200 ease-out scale-100 motion-safe:animate-scale-in border border-gray-100 dark:border-gray-800">
         <div className="flex justify-between items-center mb-4">
           <h3 id="ai-modal-title" className="text-lg font-medium">AI Analysis</h3>
           <button onClick={onClose} aria-label="Close AI Analysis" className="text-gray-600">✕</button>
         </div>
 
         <div className="mb-4">
-          <label className="block mb-2">Mode</label>
-          <select value={mode} onChange={(e) => { setMode(e.target.value as any); setErrors(null); }} className="border p-2 rounded w-full">
+          <label className="block mb-2 text-gray-700 dark:text-gray-200">Mode</label>
+          <select value={mode} onChange={(e) => { setMode(e.target.value as any); setErrors(null); }} className="border p-2 rounded w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
             <option value="text">Text</option>
             <option value="url">URL</option>
             <option value="image">Image</option>
@@ -129,36 +139,62 @@ export default function ModalAI({ open, onClose, onResult }: { open: boolean, on
           </select>
         </div>
 
+        {/* Accessible live region for analysis updates */}
+        <div aria-live="polite" className="sr-only">
+          {lastResult ? `Analysis complete: ${lastResult.alert ? 'Alert' : 'Normal conversation'}, risk ${lastResult.risk_score ?? '—'}` : ''}
+        </div>
+
+        {/* Preview of the message being analyzed with type badge */}
+        {lastResult?.__request?.content && (
+          <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded text-sm text-gray-700 dark:text-gray-100">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs text-gray-500">Last analyzed message</span>
+              {/* Message type badge */}
+              {(() => {
+                // Determine type: fraud, ai-generated, or normal
+                if (lastResult.alert) {
+                  return <span className="inline-flex items-center px-2 py-0.5 rounded bg-red-100 text-red-800 text-xs font-semibold animate-pulse">Fraud</span>;
+                } else if (lastResult?.details?.ai_generated) {
+                  return <span className="inline-flex items-center px-2 py-0.5 rounded bg-yellow-100 text-yellow-800 text-xs font-semibold">AI-generated</span>;
+                } else {
+                  return <span className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs font-semibold">Normal</span>;
+                }
+              })()}
+            </div>
+            <div className="mt-1">{lastResult.__request.content}</div>
+          </div>
+        )}
+
         {mode === 'text' && (
           <div>
             <label className="sr-only">Text input</label>
-            <textarea aria-label="Text to analyze" className="w-full border p-2 rounded" rows={6} value={text} onChange={(e) => setText(e.target.value)} />
+            <textarea aria-label="Text to analyze" className="w-full border p-2 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" rows={6} value={text} onChange={(e) => setText(e.target.value)} />
           </div>
         )}
 
         {mode === 'url' && (
           <div>
             <label className="sr-only">URL input</label>
-            <input aria-label="URL to analyze" className="w-full border p-2 rounded" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." />
+            <input aria-label="URL to analyze" className="w-full border p-2 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." />
           </div>
         )}
 
         {(mode === 'image' || mode === 'audio') && (
           <div>
             <label className="sr-only">File input</label>
-            <input aria-label="File upload" type="file" accept={mode === 'image' ? 'image/*' : 'audio/*'} onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <input aria-label="File upload" type="file" accept={mode === 'image' ? 'image/*' : 'audio/*'} className="w-full border p-2 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           </div>
         )}
 
         {mode === 'transaction' && (
-          <div className="text-sm text-gray-600">A sample transaction will be sent. Use backend integration for real transactions.</div>
+          <div className="text-sm text-gray-600 dark:text-gray-300">A sample transaction will be sent. Use backend integration for real transactions.</div>
         )}
 
-        {errors && <div className="mt-3 text-sm text-red-600">{errors}</div>}
+        {errors && <div className="mt-3 text-sm text-red-500 dark:text-red-400">{errors}</div>}
 
         <div className="mt-4 flex justify-end items-center space-x-2">
-          <button onClick={onClose} className="px-3 py-1 rounded border">Cancel</button>
-          <button onClick={submit} className="px-3 py-1 bg-blue-600 text-white rounded flex items-center" disabled={loading}>
+          <button onClick={onClose} className="px-3 py-1.5 rounded border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300 hover:animate-skew-x hover:shadow-md text-gray-700 dark:text-gray-200">Cancel</button>
+          <button onClick={submit} className="px-3 py-1.5 bg-blue-600 text-white rounded flex items-center transition-all duration-300 hover:bg-blue-700 hover:animate-elastic hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50 disabled:opacity-50" disabled={loading}>
             {loading ? <LoadingSpinner /> : null}
             <span className="ml-2">{loading ? 'Analyzing...' : 'Analyze'}</span>
           </button>

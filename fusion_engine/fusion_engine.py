@@ -8,6 +8,7 @@ import torch.nn as nn
 from ai_modules.nlp_module.nlp_processor import NLPProcessor
 from ai_modules.vision_module.vision_processor import VisionProcessor  # Assuming it exists
 from ai_modules.audio_module.audio_processor import AudioProcessor
+from ai_modules.text_classifier import TextClassifier
 from backend.database.redis import RedisClient  # Assuming Redis is set up
 
 class FusionEngine:
@@ -133,6 +134,9 @@ class FusionEngine:
         return {
             'risk_score': min(100, adjusted_score),
             'confidence': late_result['confidence'],
+            'text_label': late_result.get('text_label'),
+            'text_explanation': late_result.get('text_explanation'),
+            'text_indicators': late_result.get('text_indicators'),
             'module_scores': late_result['module_scores'],
             'fusion_type': 'hybrid'
         }
@@ -143,16 +147,23 @@ class FusionEngine:
         weights = torch.softmax(self.attention_layer(scores_tensor), dim=1).squeeze(0)
         return weights.detach().numpy()
 
-    async def _process_nlp(self, text: str) -> Dict[str, float]:
-        """Process NLP input"""
+    async def _process_nlp(self, text: str) -> Dict[str, Any]:
+        """Process NLP input using TextClassifier"""
         try:
-            sentiment = await self.nlp_processor.analyze_sentiment(text)
-            # Simplified risk score based on sentiment
-            risk_score = (1 - sentiment['positive']) * 0.5 + sentiment['negative'] * 0.5
-            return {'score': risk_score, 'confidence': 0.8}
+            result = self.text_classifier.classify(text)
+            # Map risk_level to score
+            risk_mapping = {'low': 0.2, 'medium': 0.5, 'high': 0.8}
+            risk_score = risk_mapping.get(result.risk_level, 0.5)
+            return {
+                'score': risk_score,
+                'confidence': result.confidence,
+                'label': result.label,
+                'explanation': result.explanation,
+                'indicators': result.indicators
+            }
         except Exception as e:
             self.logger.error(f"NLP processing error: {e}")
-            return {'score': 0.5, 'confidence': 0.1}
+            return {'score': 0.5, 'confidence': 0.1, 'label': 'unknown'}
 
     async def _process_vision(self, image: Optional[bytes]) -> Dict[str, float]:
         """Process vision input"""

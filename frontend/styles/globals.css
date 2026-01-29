@@ -8,3 +8,258 @@ html, body, #__next {
 
 /* Custom styles */
 .container { max-width: 1200px }
+
+/* ============================================
+   BUTTON ANIMATIONS - 14 Different Types
+   ============================================ */
+
+/* 1. Bounce - bouncing scale effect */
+@keyframes bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* 2. Pulse Glow - pulsing glow effect */
+@keyframes pulse-glow {
+  0%, 100% { 
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% { 
+    box-shadow: 0 0 20px 5px rgba(59, 130, 246, 0.3);
+  }
+}
+
+/* 3. Shake - horizontal shake for errors */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+/* 4. Wiggle - subtle rotation wiggle */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+/* 5. Elastic - elastic scale bounce */
+@keyframes elastic {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.25); }
+  50% { transform: scale(0.9); }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* 6. Float - floating up/down */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* 7. Slide Right - slide from left */
+@keyframes slide-right {
+  from { transform: translateX(-10px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* 8. Slide Left - slide from right */
+@keyframes slide-left {
+  from { transform: translateX(10px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* 9. Flip X - horizontal flip */
+@keyframes flip-x {
+  from { transform: perspective(400px) rotateX(-90deg); opacity: 0; }
+  to { transform: perspective(400px) rotateX(0); opacity: 1; }
+}
+
+/* 10. Flip Y - vertical flip */
+@keyframes flip-y {
+  from { transform: perspective(400px) rotateY(-90deg); opacity: 0; }
+  to { transform: perspective(400px) rotateY(0); opacity: 1; }
+}
+
+/* 11. Skew - skew transformation */
+@keyframes skew-x {
+  from { transform: skewX(-20deg); opacity: 0; }
+  to { transform: skewX(0); opacity: 1; }
+}
+
+/* 12. Morph - border radius morphing */
+@keyframes morph {
+  0%, 100% { border-radius: 8px; }
+  50% { border-radius: 50%; }
+}
+
+/* 13. Shimmer - shimmer sweep effect */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* 14. Ripple - ripple wave effect (CSS-only) */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   EXISTING UI ANIMATIONS
+   ============================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.98); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-6px); opacity: 0 }
+  to { transform: translateY(0); opacity: 1 }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   ANIMATION UTILITIES
+   ============================================ */
+
+@layer utilities {
+  /* Existing animations */
+  .animate-fade-in { animation: fadeIn 240ms ease-out both; }
+  .animate-slide-up { animation: slideUp 260ms cubic-bezier(.2,.9,.2,1) both; }
+  .animate-scale-in { animation: scaleIn 200ms cubic-bezier(.2,.9,.2,1) both; }
+  .animate-slide-down { animation: slideDown 220ms cubic-bezier(.2,.9,.2,1) both; }
+  .animate-spin-slow { animation: spin-slow 3s linear infinite; }
+
+  /* Button Animations - Bounce */
+  .animate-bounce-gentle { animation: bounce 0.8s ease-in-out infinite; }
+  
+  /* Button Animations - Pulse Glow */
+  .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+  
+  /* Button Animations - Shake */
+  .animate-shake { animation: shake 0.5s ease-in-out; }
+  
+  /* Button Animations - Wiggle */
+  .animate-wiggle { animation: wiggle 0.5s ease-in-out; }
+  
+  /* Button Animations - Elastic */
+  .animate-elastic { animation: elastic 0.6s ease-out; }
+  
+  /* Button Animations - Float */
+  .animate-float { animation: float 2s ease-in-out infinite; }
+  
+  /* Button Animations - Slide */
+  .animate-slide-right { animation: slide-right 300ms ease-out both; }
+  .animate-slide-left { animation: slide-left 300ms ease-out both; }
+  
+  /* Button Animations - Flip */
+  .animate-flip-x { animation: flip-x 400ms ease-out both; }
+  .animate-flip-y { animation: flip-y 400ms ease-out both; }
+  
+  /* Button Animations - Skew */
+  .animate-skew-x { animation: skew-x 300ms ease-out both; }
+  
+  /* Button Animations - Morph */
+  .animate-morph { animation: morph 1s ease-in-out infinite; }
+  
+  /* Button Animations - Shimmer */
+  .animate-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  
+  /* Button Animations - Ripple */
+  .animate-ripple { animation: ripple 0.6s ease-out; }
+}
+
+/* ============================================
+   BUTTON HOVER TRANSITIONS
+   ============================================ */
+
+@layer components {
+  /* Base button transition */
+  .btn-transition {
+    @apply transition-all duration-300 ease-out;
+  }
+  
+  /* Scale hover effect */
+  .btn-scale:hover {
+    @apply transform scale-105;
+  }
+  
+  /* Translate hover effect */
+  .btn-translate:hover {
+    @apply -translate-y-1;
+  }
+  
+  /* Rotate hover effect */
+  .btn-rotate:hover {
+    @apply rotate-3;
+  }
+  
+  /* Skew hover effect */
+  .btn-skew:hover {
+    @apply skew-x-3;
+  }
+  
+  /* Glow hover effect */
+  .btn-glow:hover {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  }
+  
+  /* Lift hover effect */
+  .btn-lift:hover {
+    @apply -translate-y-2 shadow-lg;
+  }
+  
+  /* Underline expand hover effect */
+  .btn-underline::after {
+    content: '';
+    @apply block w-0 h-0.5 bg-current transition-all duration-300;
+  }
+  .btn-underline:hover::after {
+    @apply w-full;
+  }
+  
+  /* Shimmer button background */
+  .btn-shimmer {
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #3b82f6);
+    background-size: 200% 100%;
+  }
+}
+
+/* ============================================
+   DARK MODE & SMOOTH TRANSITIONS
+   ============================================ */
+
+html { transition: color 180ms ease, background-color 180ms ease }
+body { transition: background-color 180ms ease, color 180ms ease }
+.dark body { background-color: #0b1221; color: #e6eef8 }
+.dark .bg-white { background-color: #0f1724 }
+.dark .bg-gray-50 { background-color: #071026 }
+
+

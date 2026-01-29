@@ -20,6 +20,9 @@ class DetectionLog(BaseModel):
     prediction: bool  # True if fraud detected
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     model_version: str
+    model_config = {
+        'protected_namespaces': ()
+    }
     explanation: Optional[str] = None
 
 class UserData(BaseModel):
@@ -39,6 +42,9 @@ class RiskScore(BaseModel):
     factors: Dict[str, float]  # e.g., {"amount": 0.3, "location": 0.2}
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     model_version: str
+    model_config = {
+        'protected_namespaces': ()
+    }
 
 
 # Ingestion request/response models
@@ -75,12 +81,12 @@ class IngestResponse(BaseModel):
 # Ingestion Request Models
 class TextIngestionRequest(BaseModel):
     content: str = Field(..., min_length=1, max_length=10000)
-    source_type: str = Field(..., regex="^(sms|email|social_media)$")
+    source_type: str = Field(..., pattern="^(sms|email|social_media)$")
     user_id: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
 
 class URLIngestionRequest(BaseModel):
-    url: str = Field(..., regex=r"^https?://")
+    url: str = Field(..., pattern=r"^https?://")
     user_id: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
 

@@ -1,0 +1,9 @@
+# Text Classifier Dependencies
+# Lightweight NLP-based text classification
+
+# Core dependencies (minimal)
+# No heavy ML models - rule-based + simple NLP
+
+# Already in main requirements:
+# - nltk (for sentiment analysis if needed)
+

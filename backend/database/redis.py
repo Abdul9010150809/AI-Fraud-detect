@@ -1,6 +1,6 @@
 import redis.asyncio as redis
 import logging
-from config import Config
+from backend.config import Config
 
 logger = logging.getLogger(__name__)
 

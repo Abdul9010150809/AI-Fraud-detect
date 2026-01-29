@@ -1,3 +1,4 @@
+import React from 'react'
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
@@ -24,7 +25,8 @@ describe('Navbar', () => {
 
   it('renders AI Modal button', () => {
     render(<Navbar />)
-    expect(screen.getByRole('button', { name: 'AI Modal' })).toBeInTheDocument()
+    // match either 'AI Modal' or 'Open AI Modal' (aria-label)
+    expect(screen.getByRole('button', { name: /(?:open\s*)?ai modal/i })).toBeInTheDocument()
   })
 
   it('has proper navigation structure', () => {

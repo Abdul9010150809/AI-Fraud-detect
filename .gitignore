@@ -40,3 +40,32 @@ build/
 coverage/
 # Python virtual env markers
 pip-wheel-metadata/
+
+# Jupyter
+*.ipynb_checkpoints
+
+# Test outputs
+*.coverage
+coverage.xml
+
+# System files
+*.swp
+*.swo
+
+# Backend DB dumps
+backend/dump.rdb
+backend/dump.rdb.*
+
+# Frontend build
+frontend/out/
+
+# Ignore local data
+ai_modules/**/__pycache__/
+backend/**/__pycache__/
+
+# Ignore test snapshots
+frontend/components/__snapshots__/
+frontend/components/__tests__/__snapshots__/
+
+# Ignore local docker volumes
+infrastructure/data/

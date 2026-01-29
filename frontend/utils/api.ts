@@ -37,3 +37,12 @@ export async function ingestImage(file: File) {
 export async function ingestAudio(file: File) {
   return ingestFile('/api/v1/ingest/audio', file)
 }
+
+// Text Analysis API
+export async function analyzeText(text: string, userId?: string) {
+  return postJson('/api/v1/analyze/text', { 
+    text, 
+    user_id: userId,
+    metadata: { source: 'web' }
+  })
+}

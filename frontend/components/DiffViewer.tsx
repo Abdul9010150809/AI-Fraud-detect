@@ -46,7 +46,7 @@ export default function DiffViewer({
   const reasons = raw?.reasons || raw?.explanation || raw?.details?.reasons || 'No reasons provided'
 
   return (
-    <div className="mt-3 p-3 bg-gray-50 border rounded">
+    <div className="mt-3 p-3 bg-gray-50 border rounded motion-safe:animate-fade-in">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div>
           <div className="text-xs text-gray-500 mb-1">Original</div>
@@ -65,7 +65,7 @@ export default function DiffViewer({
       </div>
 
       <div className="mt-3">
-        <div className="text-xs text-gray-500 mb-1">Why it's Fake</div>
+        <div className="text-xs text-gray-500 mb-1">Why it&apos;s Fake</div>
         <div className="p-2 bg-white rounded text-sm text-gray-800 whitespace-pre-wrap">{reasons}</div>
       </div>
 
