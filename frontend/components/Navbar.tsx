@@ -1,6 +1,18 @@
 import React from 'react'
-import Link from 'next/link'
 import ThemeToggle from './ThemeToggle'
+
+type LocalLinkProps = {
+  href: string
+  children: React.ReactNode
+  className?: string
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>
+}
+
+const Link = ({ href, children, className, onClick }: LocalLinkProps) => (
+  <a href={href} className={className} onClick={onClick}>
+    {children}
+  </a>
+)
 
 export default function Navbar() {
   return (
@@ -17,6 +29,9 @@ export default function Navbar() {
             <Link href="/ingest" className="text-sm text-gray-600 hover:text-gray-900 transition-all duration-300 btn-underline relative">Ingest</Link>
             <Link href="/analyze" className="text-sm text-gray-600 hover:text-gray-900 transition-all duration-300 btn-underline relative">Analyze</Link>
             <Link href="/alerts" className="text-sm text-gray-600 hover:text-gray-900 transition-all duration-300 btn-underline relative">Alerts</Link>
+            <Link href="/history" className="text-sm text-gray-600 hover:text-gray-900 transition-all duration-300 btn-underline relative">Chat History</Link>
+            <Link href="/faq" className="text-sm text-gray-600 hover:text-gray-900 transition-all duration-300 btn-underline relative">FAQ</Link>
+            <Link href="/about" className="text-sm text-gray-600 hover:text-gray-900 transition-all duration-300 btn-underline relative">About</Link>
             <Link href="/settings" className="text-sm text-gray-600 hover:text-gray-900 transition-all duration-300 btn-underline relative">Settings</Link>
           </div>
         </div>

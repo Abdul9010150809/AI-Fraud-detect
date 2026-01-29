@@ -13,8 +13,10 @@ test('renders AnalysisCard and toggles details', () => {
     __request: { content: 'hello' }
   }
   render(<AnalysisCard result={mock} />)
-  expect(screen.getByText(/Normal conversation/i)).toBeInTheDocument()
+  // The badge label is 'Normal' and the description is 'Typical conversational message'
+  expect(screen.getByText('Normal')).toBeInTheDocument()
+  expect(screen.getByText('Typical conversational message')).toBeInTheDocument()
   const btn = screen.getByRole('button', { name: /view details/i })
   fireEvent.click(btn)
-  expect(screen.getByText(/AI-generated Fake|AI fake/i)).toBeInTheDocument()
+  expect(screen.getByText('AI-generated Fake')).toBeInTheDocument()
 })
