@@ -23,7 +23,7 @@ frontend/.next/
 frontend/out/
 frontend/.env.local
 frontend/.env
-package-lock.json
+
 yarn.lock
 pnpm-lock.yaml
 npm-debug.log*

@@ -1,116 +1,148 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFraudStore } from '@/store/useFraudStore';
-import { analyzeText } from '@/lib/gemini';
-import { Zap, AlertTriangle, ShieldCheck, Box, MessageSquare } from 'lucide-react';
+import { analyzeContent } from '@/lib/gemini';
+import { useDropzone } from 'react-dropzone';
+import { Upload, X, Loader2, Image as ImageIcon, ScanLine, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Card } from '@/components/ui/card';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function AnalyzePage() {
     const router = useRouter();
     const {
         inputText, setInputText,
+        image, setImage,
         setIsAnalyzing, setResult,
-        fillDemoData, language
+        demoMode, isAnalyzing: globalIsAnalyzing
     } = useFraudStore();
 
-    const [tone, setTone] = useState<string>('Normal');
+    const [isLoading, setIsLoading] = useState(false);
 
-    // Simple live tone detection logic
-    useEffect(() => {
-        const lower = inputText.toLowerCase();
-        if (lower.includes('urgent') || lower.includes('immediately') || lower.includes('block')) {
-            setTone('Urgent');
-        } else if (lower.includes('kindly') && lower.includes('verify')) {
-            setTone('AI-Like');
-        } else if (lower.includes('offer') || lower.includes('winner') || lower.includes('prize')) {
-            setTone('Manipulative');
-        } else {
-            setTone('Normal');
-        }
-    }, [inputText]);
+    const onDrop = useCallback((acceptedFiles: File[]) => {
+        const file = acceptedFiles[0];
+        const reader = new FileReader();
+        reader.onload = () => {
+            setImage(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+    }, [setImage]);
 
-    const handleSimulate = (id: string) => {
-        fillDemoData(id);
-    };
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop,
+        accept: { 'image/*': [] },
+        maxFiles: 1
+    });
 
     const handleAnalyze = async () => {
-        if (!inputText.trim()) return;
+        if (!inputText && !image) return;
+
+        setIsLoading(true);
         setIsAnalyzing(true);
         setResult(null);
-        router.push('/results');
-        const result = await analyzeText(inputText);
-        setResult(result);
-        setIsAnalyzing(false);
+
+        try {
+            const data = await analyzeContent(inputText, image || undefined, demoMode);
+            // Artificial delay for the "Scan" effect to be visible
+            setTimeout(() => {
+                setResult(data);
+                router.push('/results');
+                setIsLoading(false);
+                setIsAnalyzing(false);
+            }, 2000);
+        } catch (e) {
+            console.error(e);
+            setIsLoading(false);
+            setIsAnalyzing(false);
+        }
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
+        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
 
             <div className="text-center space-y-2">
-                <h1 className="text-3xl font-bold font-display">Fraud Analysis Engine</h1>
-                <p className="text-muted-foreground">Paste any message or URL below to verify its legitimacy.</p>
+                <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
+                    <Shield className="w-8 h-8 text-primary" />
+                </div>
+                <h1 className="text-4xl font-bold font-display tracking-tight">Fraud Analysis Engine</h1>
+                <p className="text-muted-foreground text-lg">Paste text or upload a screenshot to detect fraud instantly.</p>
             </div>
 
-            <div className="bg-card border border-border p-6 rounded-2xl shadow-sm space-y-6">
+            <div className="grid gap-6 relative">
 
-                {/* Simulator Buttons */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <button onClick={() => handleSimulate('safe-1')} className="flex flex-col items-center gap-2 p-3 rounded-lg border border-border hover:bg-safe/10 hover:border-safe transition-colors group">
-                        <MessageSquare className="w-5 h-5 text-safe group-hover:scale-110 transition-transform" />
-                        <span className="text-xs font-semibold">Load Safe Msg</span>
-                    </button>
+                {/* Scanner Overlay */}
+                <AnimatePresence>
+                    {isLoading && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center border-2 border-primary/50 overflow-hidden"
+                        >
+                            <motion.div
+                                className="w-full h-1 bg-primary shadow-[0_0_20px_rgba(37,99,235,0.8)] absolute"
+                                animate={{ top: ["0%", "100%", "0%"] }}
+                                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                            />
+                            <div className="relative z-10 bg-background p-6 rounded-2xl border border-primary text-center shadow-2xl">
+                                <ScanLine className="w-12 h-12 text-primary mx-auto mb-4 animate-pulse" />
+                                <h3 className="text-xl font-bold">Scanning Content...</h3>
+                                <p className="text-muted-foreground text-sm mt-1">Analyzing Patterns • Verifying Links • Checking Forensics</p>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
-                    <button onClick={() => handleSimulate('phishing-1')} className="flex flex-col items-center gap-2 p-3 rounded-lg border border-border hover:bg-danger/10 hover:border-danger transition-colors group">
-                        <AlertTriangle className="w-5 h-5 text-danger group-hover:scale-110 transition-transform" />
-                        <span className="text-xs font-semibold">Bank Scam</span>
-                    </button>
-
-                    <button onClick={() => handleSimulate('scam-1')} className="flex flex-col items-center gap-2 p-3 rounded-lg border border-border hover:bg-warning/10 hover:border-warning transition-colors group">
-                        <Box className="w-5 h-5 text-warning group-hover:scale-110 transition-transform" />
-                        <span className="text-xs font-semibold">Delivery Scam</span>
-                    </button>
-
-                    <button onClick={() => handleSimulate('otp-scam')} className="flex flex-col items-center gap-2 p-3 rounded-lg border border-border hover:bg-danger/10 hover:border-danger transition-colors group">
-                        <ShieldCheck className="w-5 h-5 text-danger group-hover:scale-110 transition-transform" />
-                        <span className="text-xs font-semibold">OTP Scam</span>
-                    </button>
-                </div>
-
-                {/* Input Area */}
-                <div className="relative">
-                    <textarea
+                {/* Text Input */}
+                <Card className="p-4 border-2 focus-within:border-primary/50 transition-colors bg-card/50">
+                    <Textarea
+                        placeholder="Paste suspicious message, email, or link here..."
+                        className="min-h-[150px] text-lg resize-none border-none focus-visible:ring-0 p-0 shadow-none bg-transparent"
                         value={inputText}
                         onChange={(e) => setInputText(e.target.value)}
-                        placeholder={language === 'hi' ? "Sandesh yahan paste karein..." : "Paste message text, email content, or URL here..."}
-                        className="w-full h-60 p-4 rounded-xl border border-border bg-background focus:ring-2 focus:ring-primary focus:outline-none resize-none text-lg leading-relaxed"
                     />
+                </Card>
 
-                    <div className="absolute bottom-4 right-4 flex items-center gap-3">
-                        {/* Character Counter */}
-                        <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded-md border border-border">
-                            {inputText.length} chars
-                        </span>
-
-                        {/* Live Tone Badge */}
-                        <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border ${tone === 'Normal' ? 'bg-green-100 text-green-700 border-green-200' :
-                                tone === 'Urgent' ? 'bg-red-100 text-red-700 border-red-200 animate-pulse' :
-                                    'bg-yellow-100 text-yellow-700 border-yellow-200'
-                            }`}>
-                            Tone: {tone}
-                        </span>
-                    </div>
+                {/* Image Upload Area */}
+                <div {...getRootProps()} className={`
+                    border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all relative overflow-hidden
+                    ${isDragActive ? 'border-primary bg-primary/5' : 'border-muted hover:border-primary/50 hover:bg-muted/50'}
+                    ${image ? 'bg-muted/30' : ''}
+                `}>
+                    <input {...getInputProps()} />
+                    {image ? (
+                        <div className="relative inline-block">
+                            <img src={image} alt="Upload preview" className="h-48 rounded-lg shadow-md object-contain" />
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setImage(null); }}
+                                className="absolute -top-3 -right-3 bg-destructive text-white p-1 rounded-full shadow-sm hover:bg-destructive/90"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                            <div className="p-4 bg-muted rounded-full">
+                                <Upload className="w-6 h-6" />
+                            </div>
+                            <p className="font-medium">Drop screenshot here or click to upload</p>
+                            <p className="text-xs opacity-70">Supports JPG, PNG (Max 5MB)</p>
+                        </div>
+                    )}
                 </div>
 
-                {/* Analyze Button */}
-                <button
+                {/* Actions */}
+                <Button
+                    size="lg"
+                    className="w-full text-lg h-14 bg-gradient-to-r from-primary to-blue-600 hover:opacity-90 transition-opacity shadow-lg"
                     onClick={handleAnalyze}
-                    disabled={!inputText.trim()}
-                    className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-lg hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={(!inputText && !image) || isLoading}
                 >
-                    <Zap className="w-5 h-5 fill-current" />
-                    {language === 'hi' ? 'Abhi Analyze Karein' : 'Analyze Now'}
-                </button>
+                    {isLoading ? "Processing..." : "Analyze Suspicious Item"}
+                </Button>
 
             </div>
         </div>

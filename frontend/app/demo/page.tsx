@@ -26,29 +26,29 @@ export default function DemoHubPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <DemoCard
                     title="Bank Phishing"
-                    desc="Simulate a high-urgency banking alert scam."
-                    onClick={() => handleDemo('phishing-1')}
+                    desc="Simulate a high-urgency banking alert scam (Subtle)."
+                    onClick={() => handleDemo('eval-1')}
                     icon={<Lock className="w-6 h-6 text-danger" />}
                     color="border-danger/20 hover:border-danger bg-red-50/50 dark:bg-red-900/10"
                 />
                 <DemoCard
                     title="Delivery Scam"
                     desc="Simulate a fake package delivery text."
-                    onClick={() => handleDemo('scam-1')}
+                    onClick={() => handleDemo('eval-2')}
                     icon={<Zap className="w-6 h-6 text-warning" />}
                     color="border-warning/20 hover:border-warning bg-yellow-50/50 dark:bg-yellow-900/10"
                 />
                 <DemoCard
                     title="OTP Fraud"
-                    desc="Simulate a request for sensitive OTP."
-                    onClick={() => handleDemo('otp-scam')}
+                    desc="Simulate a request for sensitive OTP (Casual)."
+                    onClick={() => handleDemo('eval-4')}
                     icon={<ShieldCheck className="w-6 h-6 text-purple-500" />}
                     color="border-purple-500/20 hover:border-purple-500 bg-purple-50/50 dark:bg-purple-900/10"
                 />
                 <DemoCard
                     title="Safe Message"
                     desc="See how a normal message is handled."
-                    onClick={() => handleDemo('safe-1')}
+                    onClick={() => handleDemo('eval-5')}
                     icon={<Brain className="w-6 h-6 text-safe" />}
                     color="border-safe/20 hover:border-safe bg-green-50/50 dark:bg-green-900/10"
                 />

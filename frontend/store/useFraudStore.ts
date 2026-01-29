@@ -1,26 +1,19 @@
 import { create } from 'zustand';
 import { DEMO_DATASET } from '@/data/demo_dataset';
-
-type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-
-interface AnalysisResult {
-    riskScore: number;
-    riskLevel: RiskLevel;
-    fraudType: string;
-    confidence: number;
-    explanation: string;
-    signals: string[];
-}
+import { AnalysisResponse } from '@/lib/gemini';
 
 interface FraudStore {
     inputText: string;
     setInputText: (text: string) => void;
 
+    image: string | null; // Base64 image
+    setImage: (image: string | null) => void;
+
     isAnalyzing: boolean;
     setIsAnalyzing: (isAnalyzing: boolean) => void;
 
-    result: AnalysisResult | null;
-    setResult: (result: AnalysisResult | null) => void;
+    result: AnalysisResponse | null;
+    setResult: (result: AnalysisResponse | null) => void;
 
     demoMode: boolean;
     setDemoMode: (enabled: boolean) => void;
@@ -37,6 +30,9 @@ interface FraudStore {
 export const useFraudStore = create<FraudStore>((set) => ({
     inputText: '',
     setInputText: (text) => set({ inputText: text }),
+
+    image: null,
+    setImage: (image) => set({ image }),
 
     isAnalyzing: false,
     setIsAnalyzing: (isAnalyzing) => set({ isAnalyzing }),
@@ -56,7 +52,7 @@ export const useFraudStore = create<FraudStore>((set) => ({
     fillDemoData: (id) => {
         const item = DEMO_DATASET.find(d => d.id === id);
         if (item) {
-            set({ inputText: item.text, selectedScenario: id });
+            set({ inputText: item.text, selectedScenario: id, image: null });
         }
     }
 }));

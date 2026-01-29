@@ -1,5 +1,6 @@
-import { AnalyzeForm } from "@/components/analyze/AnalyzeForm";
-import { ShieldAlert, BrainCircuit, Lock } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ShieldAlert, BrainCircuit, Lock, ArrowRight } from "lucide-react";
 
 export default function Home() {
   return (
@@ -22,7 +23,18 @@ export default function Home() {
 
       {/* Main Analysis Component */}
       <div className="w-full max-w-3xl relative z-10">
-        <AnalyzeForm />
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link href="/analyze">
+            <Button size="lg" className="text-lg px-8 h-12 rounded-full shadow-lg hover:shadow-xl transition-all">
+              Start Analysis <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+          </Link>
+          <Link href="/demo">
+            <Button variant="outline" size="lg" className="text-lg px-8 h-12 rounded-full">
+              Try Demo Scenarios
+            </Button>
+          </Link>
+        </div>
 
         {/* Background Decorative Blur */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-blue-500/10 dark:bg-blue-500/20 blur-3xl -z-10 rounded-full scale-110 pointer-events-none" />

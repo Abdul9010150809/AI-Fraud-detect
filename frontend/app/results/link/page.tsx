@@ -6,7 +6,7 @@ import { GoogleLinkCheck } from '@/components/analyze/GoogleLinkCheck';
 import { Globe, Shield, Clock, AlertTriangle } from 'lucide-react';
 
 export default function LinkIntelligencePage() {
-    const { inputText } = useFraudStore();
+    const { inputText, result } = useFraudStore();
     const [url, setUrl] = useState<string>('');
 
     useEffect(() => {
@@ -24,9 +24,16 @@ export default function LinkIntelligencePage() {
         );
     }
 
-    // Mock Data Logic
-    const isSuspicious = url.includes('bit.ly') || url.includes('xyz') || url.includes('update');
-    const domain = new URL(url).hostname;
+    // Use store data if available, otherwise heuristics
+    const analysisData = result?.link_analysis;
+
+    const isSuspicious = analysisData
+        ? (analysisData.google_presence === 'Low' || analysisData.google_presence === 'Not Found' || analysisData.brand_spoofing)
+        : (url.includes('bit.ly') || url.includes('xyz') || url.includes('update'));
+
+    const domain = analysisData?.domain || new URL(url).hostname;
+    const googlePresence = analysisData?.google_presence || 'Not Found';
+    const shortened = analysisData?.shortened || url.length < 25;
 
     return (
         <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -39,26 +46,28 @@ export default function LinkIntelligencePage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-4 rounded-xl border border-border bg-card flex flex-col items-center text-center gap-2">
-                    <Clock className="w-8 h-8 text-blue-500" />
-                    <span className="text-sm font-muted-foreground">Domain Age</span>
-                    <span className="font-bold text-lg">{isSuspicious ? "2 Days (New)" : "5+ Years"}</span>
+                    <Clock className={`w-8 h-8 ${shortened ? 'text-warning' : 'text-blue-500'}`} />
+                    <span className="text-sm font-muted-foreground">URL Structure</span>
+                    <span className="font-bold text-lg">{shortened ? "Shortened (Risky)" : "Standard"}</span>
                 </div>
                 <div className="p-4 rounded-xl border border-border bg-card flex flex-col items-center text-center gap-2">
-                    <Shield className={`w-8 h-8 ${isSuspicious ? 'text-red-500' : 'text-green-500'}`} />
-                    <span className="text-sm font-muted-foreground">Reputation</span>
-                    <span className="font-bold text-lg">{isSuspicious ? "Poor / Blacklisted" : "Trusted"}</span>
+                    <Shield className={`w-8 h-8 ${googlePresence === 'High' ? 'text-green-500' : 'text-red-500'}`} />
+                    <span className="text-sm font-muted-foreground">Google Presence</span>
+                    <span className="font-bold text-lg">{googlePresence}</span>
                 </div>
                 <div className="p-4 rounded-xl border border-border bg-card flex flex-col items-center text-center gap-2">
                     <AlertTriangle className={`w-8 h-8 ${isSuspicious ? 'text-warning' : 'text-muted-foreground'}`} />
                     <span className="text-sm font-muted-foreground">Spoofing Risk</span>
-                    <span className="font-bold text-lg">{isSuspicious ? "High (Homograph)" : "None"}</span>
+                    <span className="font-bold text-lg">{isSuspicious ? "High" : "None"}</span>
                 </div>
             </div>
 
             <div className="bg-muted/30 p-6 rounded-xl border border-border">
                 <h3 className="font-bold mb-2">Analysis Summary</h3>
                 <p className="text-sm leading-relaxed">
-                    The domain <b>{domain}</b> {isSuspicious ? "was registered very recently, which is a common trait of phishing sites. It uses a URL shortener or generic TLD often associated with scams." : "appears to be a well-established domain with a positive reputation history. No immediate spoofing signals detected."}
+                    The domain <b>{domain}</b> {isSuspicious ?
+                        "has indicators of being unsafe. The Google Presence is low, or the URL structure attempts to mask the destination." :
+                        "appears to be a legitimate entity with a recognized presence on Google. No immediate spoofing signals detected."}
                 </p>
             </div>
         </div>

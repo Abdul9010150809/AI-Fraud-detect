@@ -12,10 +12,10 @@ export function Navbar() {
 
     const navItems = [
         { name: 'Analyze', href: '/analyze' },
-        { name: 'Compare', href: '/analyze/compare' },
+        { name: 'Email Verifier', href: '/email-analysis' },
+        { name: 'Image Forensics', href: '/image-analysis' },
         { name: 'Results', href: '/results' },
-        { name: 'Link Intelligence', href: '/results/link' },
-        { name: 'Timeline', href: '/results/timeline' },
+        { name: 'Compare', href: '/analyze/compare' },
         { name: 'Demo', href: '/demo' },
     ];
 

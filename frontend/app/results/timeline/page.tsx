@@ -44,7 +44,7 @@ export default function TimelinePage() {
         {
             title: "Risk Calculation",
             icon: <ShieldAlert className="w-5 h-5 text-red-500" />,
-            desc: `Final verdict: ${result.riskLevel} Risk.`,
+            desc: `Final verdict: ${result.risk_level} Risk.`,
             status: "Finalized"
         }
     ];
