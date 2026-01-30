@@ -17,7 +17,7 @@ export function FraudTrendChart() {
     return (
         <Card className="col-span-4">
             <CardHeader>
-                <CardTitle>Analysis Trends (7 Days)</CardTitle>
+                <CardTitle>Analysis Trend (7 Days)</CardTitle>
             </CardHeader>
             <CardContent className="pl-2">
                 <ResponsiveContainer width="100%" height={350}>
