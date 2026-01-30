@@ -1,4 +1,5 @@
 # --- Python ---
+# Trigger workflow test
 __pycache__/
 *.py[cod]
 *.pyo
