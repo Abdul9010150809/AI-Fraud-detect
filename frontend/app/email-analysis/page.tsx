@@ -41,7 +41,7 @@ export default function EmailAnalysisPage() {
             const data = await analyzeContent(compositeText);
             setTimeout(() => {
                 setResult(data);
-                router.push('/results');
+                router.push('/results/email');
                 setIsLoading(false);
                 setIsAnalyzing(false);
             }, 1000);
