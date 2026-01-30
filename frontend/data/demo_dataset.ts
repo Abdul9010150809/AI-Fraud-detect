@@ -1,61 +1,61 @@
 export const DEMO_DATASET = [
-    // User's Real-World Evaluation Examples
+    // User's Real-World Evaluation Examples - More Realistic
     {
         id: 'eval-1',
-        label: 'Eval: Subtle Bank Scam',
-        text: "Dear customer, due to recent RBI guidelines, limited services may be affected. Please confirm your details to avoid inconvenience. Link: https://sbi-update-info.xyz/login",
+        label: 'Eval: Subtle Bank Notice',
+        text: "Dear customer, as per new RBI compliance requirements, we need to update your account information. Please visit https://sbi-ekyc.co.in/verify to complete the process within 48 hours to avoid service interruption.",
         riskLevel: 'HIGH',
         fraudType: 'Phishing',
-        explanation: "Reference to 'RBI guidelines' creates false authority. URL 'sbi-update-info.xyz' is a classic spoofing domain."
+        explanation: "Uses official-sounding language and realistic domain (.co.in). The urgency (48 hours) and threat (service interruption) are subtle pressure tactics."
     },
     {
         id: 'eval-2',
-        label: 'Eval: Casual Delivery Scam',
-        text: "Hi, your parcel couldn’t be delivered today. Just confirm address here and we’ll try again. Link: https://bit.ly/3Fh2X9p",
+        label: 'Eval: Package Delivery',
+        text: "Your package from Amazon couldn't be delivered. Please confirm your address at https://amzn-delivery.info/track/IN2847392 to reschedule delivery.",
         riskLevel: 'MEDIUM',
         fraudType: 'Delivery Scam',
-        explanation: "Friendly tone masks the intent. Use of bit.ly hides the destination."
+        explanation: "Uses a realistic-looking domain with 'amzn' prefix. The tracking number adds legitimacy, but the domain '.info' and non-official URL are red flags."
     },
     {
         id: 'eval-3',
-        label: 'Eval: AI Polite Scam',
-        text: "Dear valued user, we kindly request your cooperation in verifying your account to ensure uninterrupted access to our services.",
+        label: 'Eval: Professional Email',
+        text: "Dear valued customer, we have noticed unusual activity on your account. For your security, please verify your identity by visiting our secure portal at https://accounts-verify.paypal-secure.com",
         riskLevel: 'HIGH',
-        fraudType: 'AI Generated',
-        explanation: "Overly polite, generic phrasing ('valued user', 'kindly request') is typical of AI-generated phishing templates."
+        fraudType: 'Phishing',
+        explanation: "Professional tone with security concern. Domain looks official (paypal-secure.com) but is actually a spoofed domain using hyphen trick."
     },
     {
         id: 'eval-4',
-        label: 'Eval: Personal OTP Trap',
-        text: "Bro I’m stuck, phone battery dead. You’ll get an OTP, just tell me fast.",
+        label: 'Eval: Friend Request',
+        text: "Hey! My phone died and I'm using a friend's number. Can you send me that OTP you just got? Need to login urgently for work.",
         riskLevel: 'CRITICAL',
         fraudType: 'Social Engineering',
-        explanation: "High-pressure social engineering. Leveraging personal connection ('Bro') to bypass security mindset."
+        explanation: "Casual tone mimics friend communication. Creates urgency (work) and plausible excuse (phone died) to request sensitive OTP."
     },
     {
         id: 'eval-5',
         label: 'Eval: SAFE Amazon Order',
-        text: "Your Amazon order #402-98123 has been delivered successfully. Track: https://www.amazon.in/orders",
+        text: "Your Amazon order #402-9812345-7893012 has been delivered successfully. Track your order: https://www.amazon.in/gp/css/order-history",
         riskLevel: 'LOW',
         fraudType: 'None',
-        explanation: "Legitimate transactional message. Link points to official domain 'amazon.in'."
+        explanation: "Legitimate transactional message with official Amazon domain (amazon.in) and proper order number format."
     },
 
-    // Existing Mock Data
+    // Existing Mock Data - Updated
     {
         id: 'safe-1',
         label: 'Safe: Casual Conversation',
-        text: "Hi bro, can you send the notes?",
+        text: "Hi, can you send me the class notes from yesterday? Thanks!",
         riskLevel: 'LOW',
         fraudType: 'None',
-        explanation: "Normal informal conversation."
+        explanation: "Normal informal conversation with no fraud indicators."
     },
     {
         id: 'phishing-1',
-        label: 'Bank Phishing (High Risk)',
-        text: "Your SBI account will be blocked today. Verify immediately: http://sbi-secure-login.xyz",
+        label: 'Bank Alert (High Risk)',
+        text: "ALERT: Your State Bank account shows suspicious activity. Verify your details immediately at https://sbi-secure.net/login to prevent account suspension.",
         riskLevel: 'CRITICAL',
         fraudType: 'Phishing',
-        explanation: "High urgency and spoofed domain."
+        explanation: "Uses urgency (immediately), threat (suspension), and fake domain (.net instead of official .in). Multiple high-risk indicators."
     }
 ];
