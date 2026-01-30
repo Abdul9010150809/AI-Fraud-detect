@@ -196,66 +196,277 @@ export async function analyzeContent(text: string, imageBase64?: string, useMock
 }
 
 function getMockAnalysis(text: string): AnalysisResponse {
-    const demoMatch = DEMO_DATASET.find(d => d.text.includes(text) || text.includes(d.text));
-    const isUrgent = /urgent|immediate|block|suspend|today/i.test(text);
+    const lowerText = text.toLowerCase();
 
-    // Mock similarity
-    let similarCase = undefined;
-    if (/sbi|bank|kyc/i.test(text)) similarCase = { id: "DATASET_BANK_01", similarity_score: 95, description: "Matches local dataset pattern for KYC Fraud." };
+    // Check for demo dataset match first
+    const demoMatch = DEMO_DATASET.find(d =>
+        d.text.toLowerCase().includes(lowerText) ||
+        lowerText.includes(d.text.toLowerCase()) ||
+        (lowerText.length > 20 && d.text.toLowerCase().substring(0, 30) === lowerText.substring(0, 30))
+    );
 
-    let bankVerif = undefined;
-    if (/sbi|hdfc|icici/i.test(text)) {
-        bankVerif = { detected_bank: "Detected Bank", is_official_domain: false, risk_reason: "Domain mismatch" };
+    // Initialize risk score and signals
+    let riskScore = 0;
+    const detectedSignals: any = {
+        urgency: false,
+        impersonation: false,
+        otp_request: false,
+        suspicious_url: false,
+        ai_generated_tone: false,
+        image_text_mismatch: false,
+        fake_branding: false,
+        visual_artifacts: false
+    };
+    const fraudTypes: string[] = [];
+    const whyFraud: string[] = [];
+    const riskyPhrases: string[] = [];
+    const signals: string[] = [];
+
+    // 1. URGENCY DETECTION (High Weight: +25 points)
+    const urgencyKeywords = ['urgent', 'immediate', 'immediately', 'block', 'blocked', 'suspend', 'suspended', 'today', 'tonight', 'now', 'asap', 'expire', 'expires', 'limited time', 'act now', 'deadline'];
+    const urgencyMatches = urgencyKeywords.filter(kw => lowerText.includes(kw));
+    if (urgencyMatches.length > 0) {
+        detectedSignals.urgency = true;
+        riskScore += 25;
+        whyFraud.push(`Urgency tactics detected: "${urgencyMatches.join('", "')}" - creates panic to bypass critical thinking`);
+        riskyPhrases.push(...urgencyMatches);
+        signals.push('Urgency Pressure');
     }
 
-    if (demoMatch) {
-        return {
-            is_fraud: demoMatch.riskLevel !== 'LOW',
-            risk_score: demoMatch.riskLevel === 'CRITICAL' ? 95 : 10,
-            risk_level: demoMatch.riskLevel as any,
-            fraud_type: [demoMatch.fraudType],
-            why_fraud: [demoMatch.explanation],
-            risky_phrases: isUrgent ? ["account blocked"] : [],
-            detected_signals: { urgency: isUrgent, impersonation: false, otp_request: false, suspicious_url: true, ai_generated_tone: false, image_text_mismatch: false, fake_branding: false, visual_artifacts: false },
-            link_analysis: { domain: "mock.com", shortened: false, brand_spoofing: false, google_presence: "Medium" },
-            similar_case_match: similarCase,
-            text_error_analysis: { typos: ["immedately"], grammar_issues: ["Poor grammar"], score: 50 },
-            bank_verification: bankVerif,
-            email_analysis: { is_email: false, sender_domain_mismatch: false, suspicious_subject: false, attachment_risk: "None", headers_analysis: "" },
-            image_analysis: { is_safe_content: true, visual_anomalies: [], ocr_text_risk: "Low" },
-            counterfactual_safe_conditions: ["None"],
-            campaign_detected: false,
-            recommended_action: ["Verify"],
-            model_self_check: { possible_misclassification_reason: "Mock", confidence_calibration: "High" },
-            confidence: 90,
-            explanation: demoMatch.explanation,
-            signals: ["Mock"],
-            tone: "Normal"
+    // 2. FINANCIAL/PRIZE KEYWORDS (High Weight: +30 points)
+    const financialKeywords = ['prize', 'won', 'winner', 'lottery', 'congratulation', 'reward', 'cash', 'money', 'transfer', 'claim', 'lakh', 'crore', 'million', 'free', 'bonus'];
+    const financialMatches = financialKeywords.filter(kw => lowerText.includes(kw));
+    if (financialMatches.length > 0) {
+        riskScore += Math.min(30, financialMatches.length * 15);
+        fraudTypes.push('Financial Scam');
+        whyFraud.push(`Financial lure detected: "${financialMatches.join('", "')}" - typical lottery/prize scam pattern`);
+        riskyPhrases.push(...financialMatches);
+        signals.push('Financial Incentive');
+    }
+
+    // 3. BANK/ORGANIZATION IMPERSONATION (Critical: +35 points)
+    const bankKeywords = ['sbi', 'hdfc', 'icici', 'axis', 'bank', 'paypal', 'paytm', 'google pay', 'phonepe', 'amazon', 'flipkart', 'rbi'];
+    const bankMatches = bankKeywords.filter(kw => lowerText.includes(kw));
+    if (bankMatches.length > 0) {
+        detectedSignals.impersonation = true;
+        riskScore += 35;
+        fraudTypes.push('Impersonation');
+        whyFraud.push(`Impersonating trusted organization: "${bankMatches.join('", "')}" - high-risk phishing indicator`);
+        signals.push('Brand Impersonation');
+    }
+
+    // 4. OTP/VERIFICATION REQUEST (Critical: +30 points)
+    const otpKeywords = ['otp', 'one time password', 'verification code', 'verify', 'confirm', 'validate', 'authenticate', 'kyc', 'update details', 'update pan'];
+    const otpMatches = otpKeywords.filter(kw => lowerText.includes(kw));
+    if (otpMatches.length > 0) {
+        detectedSignals.otp_request = true;
+        riskScore += 30;
+        fraudTypes.push('Credential Theft');
+        whyFraud.push(`Requesting sensitive information: "${otpMatches.join('", "')}" - credential harvesting attempt`);
+        riskyPhrases.push(...otpMatches);
+        signals.push('OTP/Credential Request');
+    }
+
+    // 5. SUSPICIOUS LINKS (High Weight: +25 points)
+    const urlPattern = /(https?:\/\/[^\s]+)|(bit\.ly|tinyurl|short\.link|goo\.gl)/gi;
+    const urls = text.match(urlPattern);
+    if (urls) {
+        detectedSignals.suspicious_url = true;
+        const hasShortener = /bit\.ly|tinyurl|short\.link|goo\.gl/i.test(text);
+        const hasSuspiciousDomain = /\.xyz|\.tk|\.ml|\.ga|\.cf|-secure|-verify|-update|-login/i.test(text);
+
+        if (hasShortener) {
+            riskScore += 20;
+            whyFraud.push('URL shortener detected - hides true destination');
+            signals.push('Shortened URL');
+        }
+        if (hasSuspiciousDomain) {
+            riskScore += 25;
+            whyFraud.push('Suspicious domain pattern detected - likely spoofing');
+            signals.push('Suspicious Domain');
+        }
+    }
+
+    // 6. AI-GENERATED TONE DETECTION (+15 points)
+    const aiPhrases = ['dear valued', 'kindly request', 'cooperation', 'uninterrupted access', 'we regret', 'inconvenience caused'];
+    const aiMatches = aiPhrases.filter(phrase => lowerText.includes(phrase));
+    if (aiMatches.length >= 2) {
+        detectedSignals.ai_generated_tone = true;
+        riskScore += 15;
+        fraudTypes.push('AI Generated');
+        whyFraud.push('Overly formal/generic phrasing typical of AI-generated phishing templates');
+        signals.push('AI-Like Tone');
+    }
+
+    // 7. SOCIAL ENGINEERING (+20 points)
+    const socialEngineering = ['bro', 'friend', 'help', 'stuck', 'emergency', 'battery dead', 'phone lost'];
+    const socialMatches = socialEngineering.filter(kw => lowerText.includes(kw));
+    if (socialMatches.length >= 2) {
+        riskScore += 20;
+        fraudTypes.push('Social Engineering');
+        whyFraud.push('Personal connection exploitation - leveraging trust to bypass security');
+        signals.push('Social Engineering');
+    }
+
+    // 8. EMAIL ANALYSIS (if email format detected)
+    let emailAnalysis = {
+        is_email: false,
+        sender_domain_mismatch: false,
+        suspicious_subject: false,
+        attachment_risk: "None" as "None" | "Low" | "High",
+        headers_analysis: ""
+    };
+
+    if (lowerText.includes('sender:') || lowerText.includes('subject:') || lowerText.includes('[email_header_analysis_request]')) {
+        emailAnalysis.is_email = true;
+
+        // Check for sender domain mismatch
+        const senderMatch = text.match(/sender:\s*([^\n]+)/i);
+        if (senderMatch) {
+            const sender = senderMatch[1].toLowerCase();
+            const hasGenericDomain = /@(gmail|yahoo|hotmail|outlook|mail)\.com/i.test(sender);
+            const claimsOfficial = bankKeywords.some(kw => lowerText.includes(kw));
+
+            if (hasGenericDomain && claimsOfficial) {
+                emailAnalysis.sender_domain_mismatch = true;
+                riskScore += 40;
+                whyFraud.push('CRITICAL: Sender domain mismatch - claims to be official organization but uses generic email provider');
+                signals.push('Sender Spoofing');
+            }
+        }
+
+        // Check subject line
+        const subjectMatch = text.match(/subject:\s*([^\n]+)/i);
+        if (subjectMatch) {
+            const subject = subjectMatch[1].toLowerCase();
+            if (urgencyKeywords.some(kw => subject.includes(kw))) {
+                emailAnalysis.suspicious_subject = true;
+                riskScore += 15;
+            }
+        }
+    }
+
+    // 9. BANK VERIFICATION
+    let bankVerification = undefined;
+    if (bankMatches.length > 0) {
+        const detectedBank = bankMatches[0].toUpperCase();
+        const hasOfficialDomain = /\.in|\.com/.test(lowerText) && !/-secure|-verify|-update/.test(lowerText);
+        bankVerification = {
+            detected_bank: detectedBank,
+            is_official_domain: hasOfficialDomain,
+            risk_reason: hasOfficialDomain ? null : "Domain appears to be spoofed or unofficial"
         };
     }
 
-    // Fallback
+    // 10. SAFE INDICATORS (Reduce risk score)
+    const safeIndicators = ['thank you', 'regards', 'official', 'customer service', 'help desk'];
+    const safeMatches = safeIndicators.filter(kw => lowerText.includes(kw));
+
+    // Very casual/normal conversation
+    const casualPhrases = ['can you', 'could you', 'please send', 'notes', 'homework', 'meeting'];
+    const casualMatches = casualPhrases.filter(kw => lowerText.includes(kw));
+    if (casualMatches.length >= 2 && riskScore < 30) {
+        riskScore = Math.max(0, riskScore - 20);
+    }
+
+    // If demo match found, use its risk level but with calculated score
+    if (demoMatch) {
+        const demoRiskMap: any = {
+            'CRITICAL': 90,
+            'HIGH': 75,
+            'MEDIUM': 50,
+            'LOW': 10
+        };
+        riskScore = demoRiskMap[demoMatch.riskLevel] || riskScore;
+
+        return {
+            is_fraud: demoMatch.riskLevel !== 'LOW',
+            risk_score: riskScore,
+            risk_level: demoMatch.riskLevel as any,
+            fraud_type: [demoMatch.fraudType],
+            why_fraud: [demoMatch.explanation],
+            risky_phrases: riskyPhrases.length > 0 ? riskyPhrases : ["account blocked"],
+            detected_signals: detectedSignals,
+            link_analysis: { domain: urls ? urls[0].replace(/https?:\/\//, '').split('/')[0] : "mock.com", shortened: /bit\.ly|tinyurl/i.test(text), brand_spoofing: detectedSignals.impersonation, google_presence: "Medium" },
+            similar_case_match: { id: demoMatch.id, similarity_score: 95, description: demoMatch.explanation },
+            text_error_analysis: { typos: [], grammar_issues: [], score: 20 },
+            bank_verification: bankVerification,
+            email_analysis: emailAnalysis,
+            image_analysis: { is_safe_content: true, visual_anomalies: [], ocr_text_risk: "Low" },
+            counterfactual_safe_conditions: ["If sender used official domain", "If no urgency language was used"],
+            campaign_detected: false,
+            recommended_action: riskScore > 70 ? ["Do not click any links", "Report as spam", "Verify through official channels"] : ["Verify sender identity"],
+            model_self_check: { possible_misclassification_reason: "Demo dataset match", confidence_calibration: "High" },
+            confidence: 90,
+            explanation: demoMatch.explanation,
+            signals: signals.length > 0 ? signals : ["Demo Match"],
+            tone: detectedSignals.urgency ? "Urgent" : detectedSignals.ai_generated_tone ? "AI-Like" : "Normal"
+        };
+    }
+
+    // Calculate final risk level based on score
+    let riskLevel: "Safe" | "Suspicious" | "High" | "Critical" = "Safe";
+    let isFraud = false;
+
+    if (riskScore >= 80) {
+        riskLevel = "Critical";
+        isFraud = true;
+    } else if (riskScore >= 60) {
+        riskLevel = "High";
+        isFraud = true;
+    } else if (riskScore >= 30) {
+        riskLevel = "Suspicious";
+        isFraud = true;
+    } else {
+        riskLevel = "Safe";
+        isFraud = false;
+    }
+
+    // Ensure we have at least some fraud type
+    if (fraudTypes.length === 0 && isFraud) {
+        fraudTypes.push('Possible Scam');
+    }
+    if (fraudTypes.length === 0 && !isFraud) {
+        fraudTypes.push('None');
+    }
+
+    // Build explanation
+    let explanation = "";
+    if (isFraud) {
+        explanation = `Risk Score: ${riskScore}/100. ${whyFraud.join('. ')}.`;
+    } else {
+        explanation = "Content appears safe. No significant fraud indicators detected.";
+    }
+
     return {
-        is_fraud: true,
-        risk_score: 60,
-        risk_level: 'Suspicious',
-        fraud_type: ['Possible Scam'],
-        why_fraud: ["Keywords detected"],
-        risky_phrases: [],
-        detected_signals: { urgency: false, impersonation: false, otp_request: false, suspicious_url: false, ai_generated_tone: false, image_text_mismatch: false, fake_branding: false, visual_artifacts: false },
-        link_analysis: { domain: "", shortened: false, brand_spoofing: false, google_presence: "Not Found" },
+        is_fraud: isFraud,
+        risk_score: riskScore,
+        risk_level: riskLevel,
+        fraud_type: fraudTypes,
+        why_fraud: whyFraud.length > 0 ? whyFraud : ["No significant fraud indicators"],
+        risky_phrases: riskyPhrases,
+        detected_signals: detectedSignals,
+        link_analysis: {
+            domain: urls ? urls[0].replace(/https?:\/\//, '').split('/')[0] : "",
+            shortened: /bit\.ly|tinyurl|short\.link/i.test(text),
+            brand_spoofing: detectedSignals.impersonation,
+            google_presence: riskScore > 60 ? "Low" : "Medium"
+        },
         similar_case_match: undefined,
         text_error_analysis: undefined,
-        bank_verification: undefined,
-        email_analysis: { is_email: false, sender_domain_mismatch: false, suspicious_subject: false, attachment_risk: "None", headers_analysis: "" },
+        bank_verification: bankVerification,
+        email_analysis: emailAnalysis,
         image_analysis: { is_safe_content: true, visual_anomalies: [], ocr_text_risk: "Low" },
-        counterfactual_safe_conditions: [],
+        counterfactual_safe_conditions: isFraud ? ["Remove urgency language", "Use official communication channels", "Verify sender identity"] : [],
         campaign_detected: false,
-        recommended_action: [],
-        model_self_check: { possible_misclassification_reason: "Fallback", confidence_calibration: "Low" },
-        confidence: 50,
-        explanation: "Offline Fallback",
-        signals: [],
-        tone: "Normal"
+        recommended_action: riskScore > 70 ? ["Do not respond", "Do not click links", "Report as spam", "Verify through official channels"] : riskScore > 30 ? ["Verify sender identity", "Check for official domain"] : ["Appears safe"],
+        model_self_check: {
+            possible_misclassification_reason: riskScore < 30 ? "May miss sophisticated attacks" : "Heuristic-based detection",
+            confidence_calibration: riskScore > 60 || riskScore < 20 ? "High" : "Medium"
+        },
+        confidence: riskScore > 60 ? 85 : riskScore > 30 ? 70 : 60,
+        explanation: explanation,
+        signals: signals.length > 0 ? signals : ["Content Analysis Complete"],
+        tone: detectedSignals.urgency ? "Urgent" : detectedSignals.ai_generated_tone ? "AI-Like" : "Normal"
     };
 }

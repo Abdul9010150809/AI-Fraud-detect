@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useFraudStore } from '@/store/useFraudStore';
 import { RiskMeter } from '@/components/results/RiskMeter';
 import { TextHighlighter } from '@/components/results/TextHighlighter';
-import { ArrowLeft, Loader2, Check, AlertOctagon, Info, Image as ImageIcon, Sparkles, Scan, Eye, Database, FileText, AlignLeft, ShieldCheck, XCircle, Landmark as LandmarkIcon, SpellCheck, Mail, Paperclip, AlertTriangle, Smartphone } from 'lucide-react';
+import { ArrowLeft, Loader2, Check, AlertOctagon, Info, Image as ImageIcon, Sparkles, Scan, Eye, Database, FileText, AlignLeft, ShieldCheck, XCircle, Landmark as LandmarkIcon, SpellCheck, Mail, Paperclip, AlertTriangle, Smartphone, Search } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
@@ -51,6 +51,17 @@ export default function ResultsPage() {
 
     const isSafeImage = result.image_analysis?.is_safe_content;
 
+    // Google Search Comparison Function
+    const handleGoogleSearch = () => {
+        // Extract key phrases from the text for better search results
+        const searchText = inputText || '';
+        const truncatedText = searchText.substring(0, 200); // Limit to 200 chars for URL
+        const searchQuery = `is this fraud scam: ${truncatedText}`;
+        const encodedQuery = encodeURIComponent(searchQuery);
+        const googleSearchUrl = `https://www.google.com/search?q=${encodedQuery}`;
+        window.open(googleSearchUrl, '_blank');
+    };
+
     return (
         <motion.div
             variants={container}
@@ -60,14 +71,29 @@ export default function ResultsPage() {
         >
 
             {/* Header */}
-            <div className="flex items-center gap-4">
-                <Link href="/analyze" className="p-2 hover:bg-muted rounded-full transition-colors">
-                    <ArrowLeft className="w-6 h-6" />
-                </Link>
-                <div>
-                    <h1 className="text-3xl font-bold font-display">Analysis Verdict</h1>
-                    <p className="text-muted-foreground text-sm">AI-Powered Assessment complete</p>
+            <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <Link href="/analyze" className="p-2 hover:bg-muted rounded-full transition-colors">
+                        <ArrowLeft className="w-6 h-6" />
+                    </Link>
+                    <div>
+                        <h1 className="text-3xl font-bold font-display">Analysis Verdict</h1>
+                        <p className="text-muted-foreground text-sm">AI-Powered Assessment complete</p>
+                    </div>
                 </div>
+
+                {/* Google Search Comparison Button */}
+                {inputText && (
+                    <button
+                        onClick={handleGoogleSearch}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-colors shadow-sm"
+                        title="Search Google to verify if this is a known scam"
+                    >
+                        <Search className="w-4 h-4" />
+                        <span className="hidden sm:inline">Compare with Google</span>
+                        <span className="sm:hidden">Google</span>
+                    </button>
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
