@@ -1,61 +1,69 @@
 export const DEMO_DATASET = [
-    // User's Real-World Evaluation Examples - More Realistic
+    // Real examples from spam_texts.csv dataset
     {
-        id: 'eval-1',
-        label: 'Eval: Subtle Bank Notice',
-        text: "Dear customer, as per new RBI compliance requirements, we need to update your account information. Please visit https://sbi-ekyc.co.in/verify to complete the process within 48 hours to avoid service interruption.",
-        riskLevel: 'HIGH',
-        fraudType: 'Phishing',
-        explanation: "Uses official-sounding language and realistic domain (.co.in). The urgency (48 hours) and threat (service interruption) are subtle pressure tactics."
-    },
-    {
-        id: 'eval-2',
-        label: 'Eval: Package Delivery',
-        text: "Your package from Amazon couldn't be delivered. Please confirm your address at https://amzn-delivery.info/track/IN2847392 to reschedule delivery.",
+        id: 'real-1',
+        label: 'Real: Wallet Credit Scam',
+        text: "CREDITED: Rs.75 wallet money. Use it to order medicines and get FLAT 22% OFF. Code: PHMY22 *TC PharmEasy https://peasy.in/RjXCN6",
         riskLevel: 'MEDIUM',
-        fraudType: 'Delivery Scam',
-        explanation: "Uses a realistic-looking domain with 'amzn' prefix. The tracking number adds legitimacy, but the domain '.info' and non-official URL are red flags."
+        fraudType: 'Promotional Scam',
+        explanation: "Uses shortened URL (peasy.in) and promotional tactics. While could be legitimate, the URL shortener hides the true destination."
     },
     {
-        id: 'eval-3',
-        label: 'Eval: Professional Email',
-        text: "Dear valued customer, we have noticed unusual activity on your account. For your security, please verify your identity by visiting our secure portal at https://accounts-verify.paypal-secure.com",
+        id: 'real-2',
+        label: 'Real: Discount Offer',
+        text: "Get clientele HELP Cover today. Debi check and we will cover your premium this December. Yes =call. No=out. AUTHFSP. T&C bit.ly/tc.CL.NO.=OptOut",
+        riskLevel: 'MEDIUM',
+        fraudType: 'Financial Scam',
+        explanation: "Uses bit.ly shortener and unclear terms. Requests immediate action (Yes=call) which is a pressure tactic."
+    },
+    {
+        id: 'real-3',
+        label: 'Real: Data Deal',
+        text: "Get a SPECIAL DATA DEAL of 2GB for sh. 100 valid 24hrs by clicking on https://bit.ly/Safaricomapp or Dial *544*21# and keep the connections going.",
+        riskLevel: 'MEDIUM',
+        fraudType: 'Promotional',
+        explanation: "Uses URL shortener (bit.ly) which could hide malicious links. Limited time offer (24hrs) creates urgency."
+    },
+    {
+        id: 'real-4',
+        label: 'Real: Account Statement Scam',
+        text: "PRIVATE! Your 2003 Account Statement for 07815296484 shows 800 un-redeemed S.I.M. points. Call 08718738001 Identifier Code 41782 Expires 18/11/04",
         riskLevel: 'HIGH',
         fraudType: 'Phishing',
-        explanation: "Professional tone with security concern. Domain looks official (paypal-secure.com) but is actually a spoofed domain using hyphen trick."
+        explanation: "Classic phishing attempt. Uses urgency (expiration date), unredeemed points lure, and requests calling a premium number."
     },
     {
-        id: 'eval-4',
-        label: 'Eval: Friend Request',
-        text: "Hey! My phone died and I'm using a friend's number. Can you send me that OTP you just got? Need to login urgently for work.",
+        id: 'real-5',
+        label: 'Real: Ringtone Subscription',
+        text: "Thanks for your subscription to Ringtone UK your mobile will be charged £5/month Please confirm by replying YES or NO. If you reply NO you will not be charged",
+        riskLevel: 'HIGH',
+        fraudType: 'Subscription Scam',
+        explanation: "Claims you subscribed without consent. Charges £5/month. Trick: replying YES or NO both confirm your number is active."
+    },
+    {
+        id: 'real-6',
+        label: 'Real: Free Mobile Scam',
+        text: "07732584351 - Rodger Burns - MSG = We tried to call you re your reply to our sms for a free nokia mobile + free camcorder. Please call now 08000930705 for delivery tomorrow",
         riskLevel: 'CRITICAL',
-        fraudType: 'Social Engineering',
-        explanation: "Casual tone mimics friend communication. Creates urgency (work) and plausible excuse (phone died) to request sensitive OTP."
-    },
-    {
-        id: 'eval-5',
-        label: 'Eval: SAFE Amazon Order',
-        text: "Your Amazon order #402-9812345-7893012 has been delivered successfully. Track your order: https://www.amazon.in/gp/css/order-history",
-        riskLevel: 'LOW',
-        fraudType: 'None',
-        explanation: "Legitimate transactional message with official Amazon domain (amazon.in) and proper order number format."
+        fraudType: 'Prize Scam',
+        explanation: "Classic 'free prize' scam. Claims you replied to get free items. Urgency (delivery tomorrow) and premium rate number call."
     },
 
-    // Existing Mock Data - Updated
+    // Safe examples from real dataset
     {
         id: 'safe-1',
-        label: 'Safe: Casual Conversation',
-        text: "Hi, can you send me the class notes from yesterday? Thanks!",
+        label: 'Safe: Normal Conversation',
+        text: "Hello! How's you and how did saturday go? I was just texting to see if you'd decided to do anything tomo. Not that i'm trying to invite myself or anything!",
         riskLevel: 'LOW',
         fraudType: 'None',
-        explanation: "Normal informal conversation with no fraud indicators."
+        explanation: "Normal casual conversation between friends. No fraud indicators present."
     },
     {
-        id: 'phishing-1',
-        label: 'Bank Alert (High Risk)',
-        text: "ALERT: Your State Bank account shows suspicious activity. Verify your details immediately at https://sbi-secure.net/login to prevent account suspension.",
-        riskLevel: 'CRITICAL',
-        fraudType: 'Phishing',
-        explanation: "Uses urgency (immediately), threat (suspension), and fake domain (.net instead of official .in). Multiple high-risk indicators."
+        id: 'safe-2',
+        label: 'Safe: Bank Query',
+        text: "Sir, I need AXIS BANK account no and bank address.",
+        riskLevel: 'LOW',
+        fraudType: 'None',
+        explanation: "Simple information request. No urgency, threats, or suspicious links."
     }
 ];
