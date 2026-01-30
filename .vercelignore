@@ -1,10 +1,15 @@
 # Exclude large datasets and ML files
 # Datasets
 /dataset/
-**/*.csv
+dataset/
+data/
 **/*.tsv
 **/*.xlsx
 **/*.json
+
+
+# Archives
+*.zip
 
 # ML model files
 **/*.pkl
